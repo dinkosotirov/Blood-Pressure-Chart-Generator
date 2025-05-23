@@ -5,10 +5,14 @@ A simple HTML/JavaScript tool that reads a local CSV file of blood pressure and 
 - Loads the data from local CSV file
 - Plots systolic and diastolic values on a single line chart
 - Shows thresholds lines: Elevated blood pressure, Hypertension Stage 1 & 2, Hypotension
-- Toggleable lines
+- Toggleable legend items/lines
 - Tooltips display paired values: systolic, diastolic, and pulse
 
+
+## Screenshot
+
 ![Screenshot](screenshot.png)
+
 
 ## Usage
 
@@ -17,7 +21,7 @@ A simple HTML/JavaScript tool that reads a local CSV file of blood pressure and 
 3. Click Select CSV file and choose your data file.
 4. Chart will render automatically.
 5. Hover data points to view detailed tooltips.
-6. Click legend items to toggle series visibility (Pulse is hidden by default).
+6. Click legend items to toggle series visibility (Pulse and Hypotension are hidden by default).
 
 
 ## CSV Format
