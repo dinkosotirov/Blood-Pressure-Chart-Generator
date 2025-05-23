@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Blood Pressure Chart Generator</title>
+        <script src="chart.umd.js"></script>
+        <style>
+            body {
+                font-family: sans-serif;
+                margin: 20px;
+            }
+            #controls {
+                margin-bottom: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Blood Pressure and Pulse Over Time</h1>
+        <div id="controls">
+            <label for="fileInput">Select CSV file:</label>
+            <input type="file" id="fileInput" accept=".csv" />
+        </div>
+        <canvas id="bpChart">
+            <p>Your browser does not support canvas. Please use a different browser.</p>
+        </canvas>
+        <script>
+            function parseCSV(text) {
+                const lines = text.trim().split(/\r?\n/);
+                const data = [];
+                for (let line of lines) {
+                    const parts = line.split(',').map(s => s.trim());
+                    if (parts.length < 4) continue;
+                    const [date, time, bp, pulseStr] = parts;
+
+                    // Pad single-digit times
+                    let [hour, minute] = time.split(':').map(s => s.trim());
+                    hour = hour.padStart(2, '0');
+                    minute = minute.padStart(2, '0');
+                    const isoString = `${date}T${hour}:${minute}`;
+                    const datetime = new Date(isoString);
+                    if (isNaN(datetime)) continue;
+
+                    // Parse BP
+                    const [systolic, diastolic] = bp.split('/').map(n => Number(n));
+                    if (isNaN(systolic) || isNaN(diastolic)) continue;
+
+                    // Parse pulse: treat empty as null
+                    const pulse = pulseStr === '' ? null : Number(pulseStr);
+
+                    data.push({ datetime, systolic, diastolic, pulse });
+                }
+                return data;
+            }
+
+            function loadChartFromText(text) {
+                const records = parseCSV(text);
+                records.sort((a, b) => a.datetime - b.datetime);
+
+                const dateOpts = { year: 'numeric', month: '2-digit', day: '2-digit' };
+                const timeOpts = { hour: '2-digit', minute: '2-digit', hour12: false };
+                const labels = records.map(r =>
+                    `${r.datetime.toLocaleDateString(undefined, dateOpts)} ${r.datetime.toLocaleTimeString(undefined, timeOpts)}`
+                );
+
+                const systolicData = records.map(r => r.systolic);
+                const diastolicData = records.map(r => r.diastolic);
+                const pulseData = records.map(r => r.pulse);
+
+                // Threshold constant lines
+                const count = labels.length;
+                const elevatSys = Array(count).fill(120);
+                const stage1Sys = Array(count).fill(130);
+                const stage2Sys = Array(count).fill(140);
+                const stage1Dia = Array(count).fill(80);
+                const stage2Dia = Array(count).fill(90);
+
+                const ctx = document.getElementById('bpChart').getContext('2d');
+                const datasets = [
+                    { label: 'Systolic', data: systolicData, borderColor: 'rgba(255, 99, 132, 1)', fill: false, tension: 0.1 },
+                    { label: 'Diastolic', data: diastolicData, borderColor: 'rgba(54, 162, 235, 1)', fill: false, tension: 0.1 },
+                    { label: 'Pulse', data: pulseData, borderColor: 'rgba(75, 192, 192, 1)', fill: false, tension: 0.1, yAxisID: 'pulse-axis', hidden: true, spanGaps: true },
+                    { label: 'Elevated Systolic', data: elevatSys, borderColor: 'rgba(255, 215, 0, 0.5)', borderDash: [5,5], fill: false, pointRadius: 0 },
+                    { label: 'Stage 1 Systolic', data: stage1Sys, borderColor: 'rgba(255, 140, 0, 0.5)', borderDash: [5,5], fill: false, pointRadius: 0 },
+                    { label: 'Stage 2 Systolic', data: stage2Sys, borderColor: 'rgba(255, 0, 0, 0.5)', borderDash: [5,5], fill: false, pointRadius: 0 },
+                    { label: 'Stage 1 Diastolic', data: stage1Dia, borderColor: 'rgba(0, 0, 205, 0.5)', borderDash: [5,5], fill: false, pointRadius: 0 },
+                    { label: 'Stage 2 Diastolic', data: stage2Dia, borderColor: 'rgba(75, 0, 130, 0.5)', borderDash: [5,5], fill: false, pointRadius: 0 }
+                ];
+
+                const config = {
+                    type: 'line',
+                    data: { labels, datasets },
+                    options: {
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const idx = context.dataIndex;
+                                        const systolic = context.chart.data.datasets.find(ds => ds.label === 'Systolic').data[idx];
+                                        const diastolic = context.chart.data.datasets.find(ds => ds.label === 'Diastolic').data[idx];
+                                        const pulse = context.chart.data.datasets.find(ds => ds.label === 'Pulse').data[idx];
+                                        const lines = [
+                                            `Systolic: ${systolic}`,
+                                            `Diastolic: ${diastolic}`
+                                        ];
+                                        if (pulse != null) lines.push(`Pulse: ${pulse}`);
+                                        return lines;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: { title: { display: true, text: 'Blood Pressure (mmHg)' } },
+                            'pulse-axis': { type: 'linear', position: 'right', title: { display: true, text: 'Pulse (bpm)' }, grid: { drawOnChartArea: false } },
+                            x: { title: { display: true, text: 'Date & Time' } }
+                        }
+                    }
+                };
+
+                if (window.bpChartInstance) {
+                    window.bpChartInstance.config.data = config.data;
+                    window.bpChartInstance.config.options = config.options;
+                    window.bpChartInstance.update();
+                } else {
+                    window.bpChartInstance = new Chart(ctx, config);
+                }
+            }
+
+            document.getElementById('fileInput').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(ev) { loadChartFromText(ev.target.result); };
+                reader.onerror = function() { console.error('Error reading file'); };
+                reader.readAsText(file);
+            });
+        </script>
+    </body>
+</html>
