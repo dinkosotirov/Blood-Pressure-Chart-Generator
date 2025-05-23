@@ -26,6 +26,17 @@
             <p>Your browser does not support canvas. Please use a different browser.</p>
         </canvas>
         <script>
+
+            Chart.register({
+                id: 'togglePulseAxis',
+                beforeUpdate(chart) {
+                    const pulseVisible = chart.data.datasets.some((ds, i) =>
+                        ds.yAxisID === 'pulse-axis' && chart.isDatasetVisible(i)
+                    );
+                    chart.options.scales['pulse-axis'].display = pulseVisible;
+                }
+            });
+
             function parseCSV(text) {
                 const lines = text.trim().split(/\r?\n/);
                 const data = [];
@@ -34,7 +45,7 @@
                     if (parts.length < 4) continue;
                     const [date, time, bp, pulseStr] = parts;
 
-                    // Pad single-digit times
+                    // Parse time and date
                     let [hour, minute] = time.split(':').map(s => s.trim());
                     hour = hour.padStart(2, '0');
                     minute = minute.padStart(2, '0');
@@ -46,7 +57,7 @@
                     const [systolic, diastolic] = bp.split('/').map(n => Number(n));
                     if (isNaN(systolic) || isNaN(diastolic)) continue;
 
-                    // Parse pulse: treat empty as null
+                    // Parse pulse
                     const pulse = pulseStr === '' ? null : Number(pulseStr);
 
                     data.push({ datetime, systolic, diastolic, pulse });
@@ -68,7 +79,7 @@
                 const diastolicData = records.map(r => r.diastolic);
                 const pulseData = records.map(r => r.pulse);
 
-                // Threshold constant lines
+                // Threshold lines
                 const count = labels.length;
                 const elevatSys = Array(count).fill(120);
                 const stage1Sys = Array(count).fill(130);
@@ -112,10 +123,11 @@
                         },
                         scales: {
                             y: { title: { display: true, text: 'Blood Pressure (mmHg)' } },
-                            'pulse-axis': { type: 'linear', position: 'right', title: { display: true, text: 'Pulse (bpm)' }, grid: { drawOnChartArea: false } },
+                            'pulse-axis': { type: 'linear', position: 'right', title: { display: true, text: 'Pulse (bpm)' }, grid: { drawOnChartArea: false }, display: false },
                             x: { title: { display: true, text: 'Date & Time' } }
                         }
-                    }
+                    },
+                    plugins: ['togglePulseAxis']
                 };
 
                 if (window.bpChartInstance) {
