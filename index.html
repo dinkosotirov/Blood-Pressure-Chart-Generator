@@ -81,11 +81,13 @@
 
                 // Threshold lines
                 const count = labels.length;
-                const elevatSys = Array(count).fill(120);
-                const stage1Sys = Array(count).fill(130);
-                const stage2Sys = Array(count).fill(140);
-                const stage1Dia = Array(count).fill(80);
-                const stage2Dia = Array(count).fill(90);
+                const elevatSys      = Array(count).fill(120);
+                const stage1Sys      = Array(count).fill(130);
+                const stage2Sys      = Array(count).fill(140);
+                const stage1Dia      = Array(count).fill(80);
+                const stage2Dia      = Array(count).fill(90);
+                const HypotensionSys = Array(count).fill(90);
+                const HypotensionDia = Array(count).fill(60);
 
                 const ctx = document.getElementById('bpChart').getContext('2d');
                 const datasets = [
@@ -96,7 +98,9 @@
                     { label: 'Stage 1 Systolic', data: stage1Sys, borderColor: 'rgba(255, 140, 0, 0.5)', borderDash: [5,5], fill: false, pointRadius: 0 },
                     { label: 'Stage 2 Systolic', data: stage2Sys, borderColor: 'rgba(255, 0, 0, 0.5)', borderDash: [5,5], fill: false, pointRadius: 0 },
                     { label: 'Stage 1 Diastolic', data: stage1Dia, borderColor: 'rgba(0, 0, 205, 0.5)', borderDash: [5,5], fill: false, pointRadius: 0 },
-                    { label: 'Stage 2 Diastolic', data: stage2Dia, borderColor: 'rgba(75, 0, 130, 0.5)', borderDash: [5,5], fill: false, pointRadius: 0 }
+                    { label: 'Stage 2 Diastolic', data: stage2Dia, borderColor: 'rgba(75, 0, 130, 0.5)', borderDash: [5,5], fill: false, pointRadius: 0 },
+                    { label: 'Hypotension Systolic', data: HypotensionSys, borderColor: 'rgba(0, 0, 0, 1)', borderDash: [5,5], fill: false, pointRadius: 0, hidden: true },
+                    { label: 'Hypotension Diastolic', data: HypotensionDia, borderColor: 'rgba(64, 64, 64, 0.5)', borderDash: [5,5], fill: false, pointRadius: 0, hidden: true },
                 ];
 
                 const config = {
