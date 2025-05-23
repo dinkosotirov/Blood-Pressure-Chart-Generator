@@ -4,10 +4,11 @@ A simple HTML/JavaScript tool that reads a local CSV file of blood pressure and 
 
 - Loads the data from local CSV file
 - Plots systolic and diastolic values on a single line chart
-- Shows thresholds lines: Elevated blood pressure, Hypertension Stage 1 & 2
+- Shows thresholds lines: Elevated blood pressure, Hypertension Stage 1 & 2, Hypotension
 - Toggleable lines
 - Tooltips display paired values: systolic, diastolic, and pulse
 
+![Screenshot](screenshot.png)
 
 ## Usage
 
@@ -26,7 +27,7 @@ Your CSV should have the following columns (without header):
 date,time,sys/dia,pulse
 ```
 - date: ISO date (e.g. 2025-04-26)
-- time: 24-hour time or single-digit hour (e.g. 07:00 or 7:00)
+- time: 24-hour time (e.g. 14:30)
 - systolic/diastolic blood pressure (e.g. 120/80)
 - pulse: integer (optional; leave empty if unavailable)
 
@@ -45,7 +46,8 @@ An example file with sample blood pressure readings is provided at: [sample_data
 - Sit quietly for 5 minutes, feet flat, back supported.
 - Rest the cuff at heart level on bare skin.
 - Avoid caffeine, nicotine and exercise for 30 minutes beforehand.
-- Take at least two readings, 5 minutes apart.
+- Measure at the same time every day.
+- Take multiple readings and record the results.
 
 
 ## Blood Pressure Categories
@@ -58,11 +60,13 @@ The classification of blood pressure values used in this tool is based on guidel
 | Elevated             | 120–129          | and < 80           |
 | Hypertension Stage 1 | 130–139          | or 80–89           |
 | Hypertension Stage 2 | ≥ 140            | or ≥ 90            |
+| Hypotension          | < 90             | or < 60            |
 
 
 ## Acknowledgements
 
 - Thanks to the developers of [Chart.js](https://github.com/chartjs/Chart.js) for the amazing charting library that powers the visualizations in this tool.
+- Thanks to Vladi and Anatoliy for their ideas and testing.
 
 
 ## License
