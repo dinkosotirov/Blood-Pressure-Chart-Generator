@@ -4,6 +4,7 @@ A simple HTML/JavaScript tool that reads a local CSV file of blood pressure and 
 
 - Loads the data from local CSV file
 - Plots systolic and diastolic values on a single line chart
+- Plots polynomial trend lines for systolic and diastolic
 - Shows thresholds lines: Elevated blood pressure, Hypertension Stage 1 & 2, Hypotension
 - Toggleable legend items/lines
 - Tooltips display paired values: systolic, diastolic, and pulse

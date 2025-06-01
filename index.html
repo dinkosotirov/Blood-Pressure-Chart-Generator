@@ -38,6 +38,59 @@
                 }
             });
 
+            function matrixMultiply(A, B) {
+                const rows = A.length, cols = B[0].length, mid = B.length;
+                const result = Array.from({ length: rows }, () => Array(cols).fill(0));
+                for (let i = 0; i < rows; i++) {
+                    for (let k = 0; k < mid; k++) {
+                        for (let j = 0; j < cols; j++) {
+                            result[i][j] += A[i][k] * B[k][j];
+                        }
+                    }
+                }
+                return result;
+            }
+
+            function gaussianElimination(A, b) {
+                const n = A.length;
+                const M = A.map((row, i) => [...row, ...b[i]]);
+                for (let i = 0; i < n; i++) {
+                    let max = i;
+                    for (let k = i + 1; k < n; k++) {
+                        if (Math.abs(M[k][i]) > Math.abs(M[max][i])) max = k;
+                    }
+                    [M[i], M[max]] = [M[max], M[i]];
+                    const div = M[i][i];
+                    for (let j = i; j < M[i].length; j++) M[i][j] /= div;
+                    for (let k = 0; k < n; k++) {
+                        if (k === i) continue;
+                        const factor = M[k][i];
+                        for (let j = i; j < M[k].length; j++) {
+                            M[k][j] -= factor * M[i][j];
+                        }
+                    }
+                }
+                return M.map(row => row.slice(-b[0].length));
+            }
+
+            function getPolynomialTrend(yValues, degree = 2) {
+                const n = yValues.length;
+                if (n === 0) return [];
+                const X = [];
+                for (let i = 0; i < n; i++) {
+                    const row = [];
+                    for (let d = 0; d <= degree; d++) row.push(Math.pow(i, d));
+                    X.push(row);
+                }
+                const XT = X[0].map((_, j) => X.map(row => row[j]));;
+                const XTX = matrixMultiply(XT, X);
+                const XTy = matrixMultiply(XT, yValues.map(v => [v]));
+                const coeffs = gaussianElimination(XTX, XTy).flat();
+                return yValues.map((_, i) =>
+                    coeffs.reduce((sum, c, d) => sum + c * Math.pow(i, d), 0)
+                );
+            }
+
             function parseCSV(text) {
                 const lines = text.trim().split(/\r?\n/);
                 const data = [];
@@ -76,9 +129,14 @@
                     `${r.datetime.toLocaleDateString(undefined, dateOpts)} ${r.datetime.toLocaleTimeString(undefined, timeOpts)}`
                 );
 
-                const systolicData = records.map(r => r.systolic);
-                const diastolicData = records.map(r => r.diastolic);
-                const pulseData = records.map(r => r.pulse);
+                // Raw date
+                const systolicData   = records.map(r => r.systolic);
+                const diastolicData  = records.map(r => r.diastolic);
+                const pulseData      = records.map(r => r.pulse);
+
+                // Trend lines
+                const systolicTrend  = getPolynomialTrend(systolicData, 2);
+                const diastolicTrend = getPolynomialTrend(diastolicData, 2);
 
                 // Threshold lines
                 const count = labels.length;
@@ -94,7 +152,9 @@
                 const datasets = [
                     { label: 'Systolic', data: systolicData, borderColor: 'rgba(255, 99, 132, 1)', fill: false, tension: 0.1 },
                     { label: 'Diastolic', data: diastolicData, borderColor: 'rgba(54, 162, 235, 1)', fill: false, tension: 0.1 },
-                    { label: 'Pulse', data: pulseData, borderColor: 'rgba(75, 192, 192, 1)', fill: false, tension: 0.1, yAxisID: 'pulse-axis', hidden: true, spanGaps: true },
+                    { label: 'Pulse', data: pulseData, borderColor: 'rgba(75, 192, 192, 1)', fill: false, tension: 0.1, yAxisID: 'pulse-axis', spanGaps: true, hidden: true },
+                    { label: 'Systolic Trend',  data: systolicTrend,  borderColor: 'orange', borderWidth: 4, fill: false, tension: 0, pointRadius: 0 },
+                    { label: 'Diastolic Trend', data: diastolicTrend, borderColor: 'purple', borderWidth: 4, fill: false, tension: 0, pointRadius: 0 },
                     { label: 'Elevated Systolic', data: elevatSys, borderColor: 'rgba(255, 215, 0, 0.5)', borderDash: [5,5], fill: false, pointRadius: 0 },
                     { label: 'Stage 1 Systolic', data: stage1Sys, borderColor: 'rgba(255, 140, 0, 0.5)', borderDash: [5,5], fill: false, pointRadius: 0 },
                     { label: 'Stage 2 Systolic', data: stage2Sys, borderColor: 'rgba(255, 0, 0, 0.5)', borderDash: [5,5], fill: false, pointRadius: 0 },
