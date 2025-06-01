@@ -177,10 +177,10 @@
                                         const diastolic = context.chart.data.datasets.find(ds => ds.label === 'Diastolic').data[idx];
                                         const pulse = context.chart.data.datasets.find(ds => ds.label === 'Pulse').data[idx];
                                         const lines = [
-                                            `Systolic: ${systolic}`,
-                                            `Diastolic: ${diastolic}`
+                                            `Systolic: ${systolic} mmHg`,
+                                            `Diastolic: ${diastolic} mmHg`
                                         ];
-                                        if (pulse != null) lines.push(`Pulse: ${pulse}`);
+                                        if (pulse != null) lines.push(`Pulse: ${pulse} bpm`);
                                         return lines;
                                     }
                                 }
